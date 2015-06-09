@@ -1,2 +1,3 @@
 *.pyc
 vagrant/.vagrant/*
+vagrant/tournament/.idea/*
