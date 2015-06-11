@@ -44,7 +44,7 @@ class Tournament(object):
         Args:
           name: the player's full name (need not be unique).
         """
-        self.cur.execute("INSERT INTO PLAYERS (name) VALUES('{}')".format(name))
+        self.cur.execute("INSERT INTO PLAYERS (name) VALUES(%s)", (name,))
 
 
     def playerStandings(self):
@@ -60,7 +60,8 @@ class Tournament(object):
             wins: the number of matches the player has won
             matches: the number of matches the player has played
         """
-        self.cur.execute("select * ")
+        self.cur.execute("select * from player_standings")
+        return self.cur.fetchall()
 
 
     def reportMatch(self, winner, loser):
@@ -70,7 +71,7 @@ class Tournament(object):
           winner:  the id number of the player who won
           loser:  the id number of the player who lost
         """
-        self.cur.execute("INSERT INTO MATCHES VALUES('{}, {}')".format(winner, loser))
+        self.cur.execute("INSERT INTO MATCHES VALUES(%s, %s)", (winner, loser))
 
 
 

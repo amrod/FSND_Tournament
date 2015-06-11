@@ -4,6 +4,7 @@
 import unittest
 from tournament import Tournament
 
+
 class TestTournament(unittest.TestCase):
 
     def setUp(self):
@@ -136,7 +137,7 @@ class TestTournament(unittest.TestCase):
         print "8. After one match, players with one win are paired."
 
 
-# if __name__ == '__main__':
+#if __name__ == '__main__':
 #     testDeleteMatches()
 #     testDelete()
 #     testCount()

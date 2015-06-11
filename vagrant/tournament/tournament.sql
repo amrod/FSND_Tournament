@@ -23,8 +23,32 @@ CREATE TABLE matches (
     loser integer REFERENCES players (pid)
 );
 
-CREATE VIEW WINS as
-select winner as id, count(winner) from matches group by winner order by count desc;
+CREATE VIEW player_wins as
+select players.pid as id, count(winner)
+from players left outer join matches
+on (players.pid = matches.winner)
+group by players.pid
+order by count desc;
 
-CREATE VIEW LOSSES as
-select loser as id, count(loser) from matches group by loser order by count desc;
+
+
+CREATE VIEW player_matches as
+select players.pid as id, players.name as name, count(players.pid) as matches
+from players, matches
+where players.pid = matches.winner OR players.pid = matches.loser
+group by players.pid;
+
+
+
+CREATE VIEW player_standings as
+select
+    p.pid,
+    p.name,
+    (case when w.count is null then 0 else w.count end) as wins,
+    (case when pm.matches is null then 0 else pm.matches end) as matches
+from
+    player_wins w LEFT OUTER JOIN player_matches pm ON (pm.id = w.id)
+    JOIN players p on p.pid = w.id
+
+order by wins desc;
+
