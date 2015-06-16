@@ -10,22 +10,28 @@ class Tournament(object):
     def __init__(self):
         self.conn = None
         self.cur = None
+        self._connect()
 
-    def connect(self):
+    def __del__(self):
+        self.conn.close()
+        self.cur.close()
+
+    def _connect(self):
         """Connect to the PostgreSQL database.  Returns a database connection."""
         self.conn = psycopg2.connect("dbname=tournament user=postgres password=test")
         self.cur = self.conn.cursor()
-        return self.conn
 
 
     def deleteMatches(self):
         """Remove all the match records from the database."""
         self.cur.execute("DELETE FROM matches;")
+        self.conn.commit()
 
 
     def deletePlayers(self):
         """Remove all the player records from the database."""
         self.cur.execute("DELETE FROM players;")
+        self.conn.commit()
 
 
     def countPlayers(self):
@@ -45,6 +51,7 @@ class Tournament(object):
           name: the player's full name (need not be unique).
         """
         self.cur.execute("INSERT INTO PLAYERS (name) VALUES(%s)", (name,))
+        self.conn.commit()
 
 
     def playerStandings(self):
@@ -71,7 +78,8 @@ class Tournament(object):
           winner:  the id number of the player who won
           loser:  the id number of the player who lost
         """
-        self.cur.execute("INSERT INTO MATCHES VALUES(%s, %s)", (winner, loser))
+        self.cur.execute("INSERT INTO MATCHES (winner, loser) VALUES(%s, %s)", (winner, loser))
+        self.conn.commit()
 
 
 
@@ -90,5 +98,11 @@ class Tournament(object):
             id2: the second player's unique id
             name2: the second player's name
         """
+        standings = self.playerStandings()
+        pairings = []
 
+        for p1, p2 in zip(standings[0::2], standings[1::2]):
+            pairings.append((p1[0], p1[1], p2[0], p2[1]))
+
+        return pairings
 

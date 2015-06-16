@@ -9,12 +9,9 @@ class TestTournament(unittest.TestCase):
 
     def setUp(self):
         self.t = Tournament()
-        self.conn = self.t.connect()
-        self.cur = self.conn.cursor()
 
     def tearDown(self):
-        self.cur.close()
-        self.conn.close()
+        del self.t
 
     def testDeleteMatches(self):
         self.t.deleteMatches()
@@ -135,17 +132,5 @@ class TestTournament(unittest.TestCase):
             raise ValueError(
                 "After one match, players with one win should be paired.")
         print "8. After one match, players with one win are paired."
-
-
-#if __name__ == '__main__':
-#     testDeleteMatches()
-#     testDelete()
-#     testCount()
-#     testRegister()
-#     testRegisterCountDelete()
-#     testStandingsBeforeMatches()
-#     testReportMatches()
-#     testPairings()
-#     print "Success!  All tests pass!"
 
 
