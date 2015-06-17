@@ -13,7 +13,7 @@ class TestTournament(unittest.TestCase):
     def tearDown(self):
         del self.t
 
-    def testDeleteMatches(self):
+    def test_DeleteMatches(self):
         self.t.deleteMatches()
         print "1. Old matches can be deleted."
 
@@ -134,3 +134,5 @@ class TestTournament(unittest.TestCase):
         print "8. After one match, players with one win are paired."
 
 
+if __name__ == '__main__':
+    unittest.main()
