@@ -40,7 +40,7 @@ SELECT
     COUNT(matches.id) AS matches
 FROM players LEFT OUTER JOIN matches
 ON (players.pid = matches.winner OR players.pid = matches.loser)
-GROUP BY matches.pid;
+GROUP BY players.pid;
 
 -- List total numbers of win and matches for each player.
 CREATE VIEW player_standings AS
@@ -52,6 +52,5 @@ SELECT
 from
     player_wins w LEFT OUTER JOIN player_matches pm ON (pm.id = w.id)
     JOIN players p ON p.pid = w.id
-
 ORDER BY wins DESC;
 
