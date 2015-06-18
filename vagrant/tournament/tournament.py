@@ -81,6 +81,10 @@ class Tournament(object):
         self.cur.execute("INSERT INTO MATCHES (winner, loser) VALUES(%s, %s)", (winner, loser))
         self.conn.commit()
 
+    def getMatches(self):
+
+        self.cur.execute("select * from matches")
+        return self.cur.fetchall()
 
 
     def swissPairings(self):
