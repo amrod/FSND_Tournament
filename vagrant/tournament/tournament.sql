@@ -52,5 +52,4 @@ SELECT
 from
     player_wins w LEFT OUTER JOIN player_matches pm ON (pm.id = w.id)
     JOIN players p ON p.id = w.id
-ORDER BY wins DESC;
-
+ORDER BY wins DESC, p.id ASC;

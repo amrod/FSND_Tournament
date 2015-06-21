@@ -9,8 +9,12 @@ class TestTournament(unittest.TestCase):
 
     def setUp(self):
         self.t = Tournament()
+        self.t.deleteMatches()
+        self.t.deletePlayers()
 
     def tearDown(self):
+        self.t.deleteMatches()
+        self.t.deletePlayers()
         del self.t
 
     def test_DeleteMatches(self):
@@ -19,14 +23,11 @@ class TestTournament(unittest.TestCase):
 
 
     def testDelete(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
+
         print "2. Player records can be deleted."
 
 
     def testCount(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
         c = self.t.countPlayers()
         if c == '0':
             raise TypeError(
@@ -37,8 +38,6 @@ class TestTournament(unittest.TestCase):
 
 
     def testRegister(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
         self.t.registerPlayer("Chandra Nalaar")
         c = self.t.countPlayers()
         if c != 1:
@@ -48,8 +47,6 @@ class TestTournament(unittest.TestCase):
 
 
     def testRegisterCountDelete(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
         self.t.registerPlayer("Markov Chaney")
         self.t.registerPlayer("Joe Malik")
         self.t.registerPlayer("Mao Tsu-hsi")
@@ -66,8 +63,6 @@ class TestTournament(unittest.TestCase):
 
 
     def testStandingsBeforeMatches(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
         self.t.registerPlayer("Melpomene Murray")
         self.t.registerPlayer("Randy Schwartz")
         standings = self.t.playerStandings()
@@ -89,8 +84,6 @@ class TestTournament(unittest.TestCase):
 
 
     def testReportMatches(self):
-        self.t.deleteMatches()
-        self.t.deletePlayers()
         self.t.registerPlayer("Bruno Walton")
         self.t.registerPlayer("Boots O'Neal")
         self.t.registerPlayer("Cathy Burton")
@@ -133,6 +126,69 @@ class TestTournament(unittest.TestCase):
                 "After one match, players with one win should be paired.")
         print "8. After one match, players with one win are paired."
 
+    def testHaveMathced(self):
+        self.t.registerPlayer("Player 1")
+        self.t.registerPlayer("Player 2")
+        self.t.registerPlayer("Player 3")
+        self.t.registerPlayer("Player 4")
+
+        standings = self.t.playerStandings()
+        [id1, id2, id3, id4] = [row[0] for row in standings]
+
+        self.t.reportMatch(id1, id2)
+        self.t.reportMatch(id4, id3)
+
+        matches = self.t.getMatches()
+
+        self.assertTrue(self.t._haveMatched(id1, id2, matches))
+        self.assertTrue(self.t._haveMatched(id2, id1, matches))
+        self.assertTrue(self.t._haveMatched(id3, id4, matches))
+        self.assertFalse(self.t._haveMatched(id1, id3, matches))
+        self.assertFalse(self.t._haveMatched(id3, id1, matches))
+
+    def testNoRematches(self):
+        self.t.registerPlayer("Player 1")
+        self.t.registerPlayer("Player 2")
+        self.t.registerPlayer("Player 3")
+        self.t.registerPlayer("Player 4")
+        self.t.registerPlayer("Player 5")
+        self.t.registerPlayer("Player 6")
+        self.t.registerPlayer("Player 7")
+        self.t.registerPlayer("Player 8")
+        self.t.registerPlayer("Player 9")
+        self.t.registerPlayer("Player 10")
+        self.t.registerPlayer("Player 11")
+        self.t.registerPlayer("Player 12")
+
+        standings = self.t.playerStandings()
+        [id1, id2, id3, id4, id5, id6, id7, id8, id9, id10, id11, id12] = [row[0] for row in standings]
+        # Round 1
+        self.t.reportMatch(id1, id2)
+        self.t.reportMatch(id4, id3)
+        self.t.reportMatch(id5, id6)
+        self.t.reportMatch(id7, id8)
+        self.t.reportMatch(id9, id10)
+        self.t.reportMatch(id12, id11)
+        # Round 2
+        self.t.reportMatch(id4, id1)
+        self.t.reportMatch(id5, id7)
+        self.t.reportMatch(id9, id12)
+        self.t.reportMatch(id3, id2)
+        self.t.reportMatch(id6, id8)
+        self.t.reportMatch(id11, id10)
+        # Round 3
+        self.t.reportMatch(id4, id5)
+        self.t.reportMatch(id9, id1)
+        self.t.reportMatch(id7, id11)
+        self.t.reportMatch(id3, id12)
+        self.t.reportMatch(id2, id6)
+        self.t.reportMatch(id10, id8)
+
+        pairings = self.t.swissPairings()
+        # print "Pairings:"
+        # for p in pairings:
+        #     print p
+        self.assertFalse((id6, 'Player 6', id10, 'Player 10') in pairings)
 
 if __name__ == '__main__':
     unittest.main()

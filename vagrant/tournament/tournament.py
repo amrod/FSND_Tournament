@@ -5,8 +5,8 @@
 
 import psycopg2
 
-class Tournament(object):
 
+class Tournament(object):
     def __init__(self):
         self.conn = None
         self.cur = None
@@ -82,10 +82,13 @@ class Tournament(object):
         self.conn.commit()
 
     def getMatches(self):
+        """Returns player id pairs for all matches currently recorded.
 
-        self.cur.execute("select * from matches")
+        Returns:
+            A list of tuples, each of which contains (id, winner, loser)
+        """
+        self.cur.execute("select winner, loser from matches")
         return self.cur.fetchall()
-
 
     def swissPairings(self):
         """Returns a list of pairs of players for the next round of a match.
@@ -102,11 +105,41 @@ class Tournament(object):
             id2: the second player's unique id
             name2: the second player's name
         """
+        matches = self.getMatches()
         standings = self.playerStandings()
+        paired = set()
         pairings = []
 
-        for p1, p2 in zip(standings[0::2], standings[1::2]):
+        for i in range(0, len(standings) - 1, 2):
+
+            k = 1
+            while True:
+                p1 = standings[i]
+                p2 = standings[i + 1]
+
+                if self._haveMatched(p1[0], p2[0], matches):
+                    s1 = standings[i + 1]
+                    standings[i + 1] = standings[i + 1 + k]
+                    standings[i + 1 + k] = s1
+                    k += 1
+                else:
+                    break
+
+            paired.add(p1[0])
+            paired.add(p2[0])
             pairings.append((p1[0], p1[1], p2[0], p2[1]))
 
         return pairings
 
+    def haveMatched(self, id1, id2, matches):
+        """Determine whether id1 and id2   
+        :param id1:
+        :param id2:
+        :param matches:
+        :return:
+        """
+        for m in matches:
+            if id1 in m and id2 in m:
+                return True
+
+        return False
