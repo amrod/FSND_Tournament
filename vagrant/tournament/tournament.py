@@ -7,10 +7,13 @@ import psycopg2
 
 
 class Tournament(object):
-    def __init__(self):
+    def __init__(self, tournament=''):
         self.conn = None
         self.cur = None
         self._connect()
+        self.rounds = 0
+
+        self.tournId = self.getTournament(tournament)
 
     def __del__(self):
         self.conn.close()
@@ -21,11 +24,25 @@ class Tournament(object):
         self.conn = psycopg2.connect("dbname=tournament user=postgres password=test")
         self.cur = self.conn.cursor()
 
+    def getTournament(self, tname):
+        self.cur.execute("SELECT id FROM tournaments where name like %s", (tname,))
+        tid = self.cur.fetchone()
+
+        if not tid:
+            self.cur.execute("INSERT INTO tournaments (name) VALUES(%s) RETURNING id", (tname,))
+            self.conn.commit()
+            res = self.cur.fetchone()
+
+        return tid
+
+    def addRound(self):
+        pass
 
     def deleteMatches(self):
         """Remove all the match records from the database."""
         self.cur.execute("DELETE FROM matches;")
         self.conn.commit()
+        self.rounds = 0
 
 
     def deletePlayers(self):
@@ -67,7 +84,7 @@ class Tournament(object):
             wins: the number of matches the player has won
             matches: the number of matches the player has played
         """
-        self.cur.execute("select * from player_standings")
+        self.cur.execute("SELECT * FROM player_standings WHERE tournId = %s", self.tournId)
         return self.cur.fetchall()
 
 
@@ -78,7 +95,7 @@ class Tournament(object):
           winner:  the id number of the player who won
           loser:  the id number of the player who lost
         """
-        self.cur.execute("INSERT INTO MATCHES (winner, loser) VALUES(%s, %s)", (winner, loser))
+        self.cur.execute("INSERT INTO MATCHES (tournId, winner, loser) VALUES(%s, %s, %s)", (self.tournId, winner, loser))
         self.conn.commit()
 
     def getMatches(self):
@@ -87,7 +104,7 @@ class Tournament(object):
         Returns:
             A list of tuples, each of which contains (id, winner, loser)
         """
-        self.cur.execute("select winner, loser from matches")
+        self.cur.execute("SELECT winner, loser FROM matches WHERE tournId = %s", self.tournId)
         return self.cur.fetchall()
 
     def swissPairings(self):
@@ -131,12 +148,12 @@ class Tournament(object):
 
         return pairings
 
-    def haveMatched(self, id1, id2, matches):
-        """Determine whether id1 and id2   
-        :param id1:
-        :param id2:
-        :param matches:
-        :return:
+    def _haveMatched(self, id1, id2, matches):
+        """Determine whether id1 and id2 have been paired matches.
+        matches is a list of 2-tuples.
+
+        Returns:
+            True if the IDs have been paired, False if not.
         """
         for m in matches:
             if id1 in m and id2 in m:

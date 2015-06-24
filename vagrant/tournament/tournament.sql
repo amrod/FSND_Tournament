@@ -24,17 +24,17 @@ CREATE TABLE tournaments (
 
 CREATE TABLE matches (
     id serial PRIMARY KEY,
-    tournament INTEGER REFERENCES tournaments (id),
+    tournId INTEGER REFERENCES tournaments (id) ON DELETE CASCADE,
     winner INTEGER REFERENCES players (id),
     loser INTEGER REFERENCES players (id)
 );
 
 -- List total number of wins for player.
 CREATE VIEW player_wins AS
-SELECT players.id AS id, matches.tournament, COUNT(winner)
+SELECT players.id AS id, matches.tournId, COUNT(winner)
 FROM players LEFT OUTER JOIN matches
 ON (players.id = matches.winner)
-GROUP BY players.id, matches.tournament
+GROUP BY players.id, matches.tournId
 ORDER BY COUNT DESC;
 
 
@@ -43,18 +43,18 @@ CREATE VIEW player_matches AS
 SELECT
     players.id AS id,
     players.name AS name,
-    matches.tournament,
+    matches.tournId,
     COUNT(matches.id) AS matches
 FROM players LEFT OUTER JOIN matches
 ON (players.id = matches.winner OR players.id = matches.loser)
-GROUP BY players.id, matches.tournament;
+GROUP BY players.id, matches.tournId;
 
 -- List total number of wins and matches for each player.
 CREATE VIEW player_standings AS
 SELECT
     p.id,
     p.name,
-    pm.tournament,
+    pm.tournId,
     (CASE WHEN w.count IS NULL THEN 0 ELSE w.count END) AS wins,
     (CASE WHEN pm.matches IS NULL THEN 0 ELSE pm.matches END) AS matches
 from
