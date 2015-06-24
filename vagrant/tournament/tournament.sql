@@ -17,18 +17,24 @@ CREATE TABLE players (
     name VARCHAR(32)
 );
 
+CREATE TABLE tournaments (
+    id serial PRIMARY KEY,
+    name varchar(64)
+);
+
 CREATE TABLE matches (
     id serial PRIMARY KEY,
+    tournament INTEGER REFERENCES tournaments (id),
     winner INTEGER REFERENCES players (id),
     loser INTEGER REFERENCES players (id)
 );
 
 -- List total number of wins for player.
 CREATE VIEW player_wins AS
-SELECT players.id AS id, COUNT(winner)
+SELECT players.id AS id, matches.tournament, COUNT(winner)
 FROM players LEFT OUTER JOIN matches
 ON (players.id = matches.winner)
-GROUP BY players.id
+GROUP BY players.id, matches.tournament
 ORDER BY COUNT DESC;
 
 
@@ -37,16 +43,18 @@ CREATE VIEW player_matches AS
 SELECT
     players.id AS id,
     players.name AS name,
+    matches.tournament,
     COUNT(matches.id) AS matches
 FROM players LEFT OUTER JOIN matches
 ON (players.id = matches.winner OR players.id = matches.loser)
-GROUP BY players.id;
+GROUP BY players.id, matches.tournament;
 
--- List total numbers of win and matches for each player.
+-- List total number of wins and matches for each player.
 CREATE VIEW player_standings AS
 SELECT
     p.id,
     p.name,
+    pm.tournament,
     (CASE WHEN w.count IS NULL THEN 0 ELSE w.count END) AS wins,
     (CASE WHEN pm.matches IS NULL THEN 0 ELSE pm.matches END) AS matches
 from
