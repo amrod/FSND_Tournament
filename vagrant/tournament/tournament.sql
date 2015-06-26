@@ -12,14 +12,15 @@ CREATE DATABASE tournament;
 
 \c tournament;
 
-CREATE TABLE players (
-    id serial PRIMARY KEY,
-    name VARCHAR(32)
-);
-
 CREATE TABLE tournaments (
     id serial PRIMARY KEY,
     name varchar(64)
+);
+
+CREATE TABLE players (
+    id serial PRIMARY KEY,
+    name VARCHAR(32),
+    tournId INTEGER REFERENCES tournaments (id) ON DELETE CASCADE
 );
 
 CREATE TABLE matches (
@@ -43,7 +44,7 @@ CREATE VIEW player_matches AS
 SELECT
     players.id AS id,
     players.name AS name,
-    matches.tournId,
+    players.tournId,
     COUNT(matches.id) AS matches
 FROM players LEFT OUTER JOIN matches
 ON (players.id = matches.winner OR players.id = matches.loser)
@@ -54,7 +55,7 @@ CREATE VIEW player_standings AS
 SELECT
     p.id,
     p.name,
-    pm.tournId,
+    p.tournId,
     (CASE WHEN w.count IS NULL THEN 0 ELSE w.count END) AS wins,
     (CASE WHEN pm.matches IS NULL THEN 0 ELSE pm.matches END) AS matches
 from

@@ -13,18 +13,19 @@ class TestTournament(unittest.TestCase):
         self.t.deletePlayers()
 
     def tearDown(self):
+        self.t.deleteTournamnets()
         self.t.deleteMatches()
         self.t.deletePlayers()
         del self.t
 
     def test_DeleteMatches(self):
         self.t.deleteMatches()
-        print "1. Old matches can be deleted."
+        print "Old matches can be deleted."
 
 
     def testDelete(self):
 
-        print "2. Player records can be deleted."
+        print "Player records can be deleted."
 
 
     def testCount(self):
@@ -34,7 +35,7 @@ class TestTournament(unittest.TestCase):
                 "countPlayers() should return numeric zero, not string '0'.")
         if c != 0:
             raise ValueError("After deleting, countPlayers should return zero.")
-        print "3. After deleting, countPlayers() returns zero."
+        print "After deleting, countPlayers() returns zero."
 
 
     def testRegister(self):
@@ -43,7 +44,7 @@ class TestTournament(unittest.TestCase):
         if c != 1:
             raise ValueError(
                 "After one player registers, countPlayers() should be 1.")
-        print "4. After registering a player, countPlayers() returns 1."
+        print "After registering a player, countPlayers() returns 1."
 
 
     def testRegisterCountDelete(self):
@@ -59,7 +60,7 @@ class TestTournament(unittest.TestCase):
         c = self.t.countPlayers()
         if c != 0:
             raise ValueError("After deleting, countPlayers should return zero.")
-        print "5. Players can be registered and deleted."
+        print "Players can be registered and deleted."
 
 
     def testStandingsBeforeMatches(self):
@@ -80,7 +81,7 @@ class TestTournament(unittest.TestCase):
         if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
             raise ValueError("Registered players' names should appear in standings, "
                              "even if they have no matches played.")
-        print "6. Newly registered players appear in the standings with no matches."
+        print "Newly registered players appear in the standings with no matches."
 
 
     def testReportMatches(self):
@@ -88,6 +89,7 @@ class TestTournament(unittest.TestCase):
         self.t.registerPlayer("Boots O'Neal")
         self.t.registerPlayer("Cathy Burton")
         self.t.registerPlayer("Diane Grant")
+
         standings = self.t.playerStandings()
         [id1, id2, id3, id4] = [row[0] for row in standings]
         self.t.reportMatch(id1, id2)
@@ -100,7 +102,7 @@ class TestTournament(unittest.TestCase):
                 raise ValueError("Each match winner should have one win recorded.")
             elif i in (id2, id4) and w != 0:
                 raise ValueError("Each match loser should have zero wins recorded.")
-        print "7. After a match, players have updated standings."
+        print "After a match, players have updated standings."
 
 
     def testPairings(self):
@@ -124,7 +126,7 @@ class TestTournament(unittest.TestCase):
         if correct_pairs != actual_pairs:
             raise ValueError(
                 "After one match, players with one win should be paired.")
-        print "8. After one match, players with one win are paired."
+        print "After one match, players with one win are paired."
 
     def testHaveMathced(self):
         self.t.registerPlayer("Player 1")
@@ -185,10 +187,8 @@ class TestTournament(unittest.TestCase):
         self.t.reportMatch(id10, id8)
 
         pairings = self.t.swissPairings()
-        # print "Pairings:"
-        # for p in pairings:
-        #     print p
-        self.assertFalse((id6, 'Player 6', id10, 'Player 10') in pairings)
+        self.assertFalse((id6, 'Player 6', id10, 'Player 10') in pairings, "Two players should not play against each onther more than once.")
+        print "Rematches are prevented."
 
 if __name__ == '__main__':
     unittest.main()
