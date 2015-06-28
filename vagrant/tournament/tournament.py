@@ -8,6 +8,10 @@ import psycopg2
 
 class Tournament(object):
     def __init__(self, tournament=None):
+        """The constructor opens a connection to the database and starts a tournament. The parameter tournament accepts
+         a tournament name. If a tournament by that name exists it will be used for this instance, if not, a new tournament
+         is created with that name.
+        """
         self.conn = None
         self.cur = None
         self._connect()
@@ -25,6 +29,11 @@ class Tournament(object):
         self.cur = self.conn.cursor()
 
     def _getTournament(self, tname):
+        """Gets or creates a tournament by the name tname.
+
+        Returns:
+            Id of the tournament created or retrieved.
+        """
         tid = None
 
         if tname:
@@ -101,10 +110,6 @@ class Tournament(object):
         """
         self.cur.execute("INSERT INTO PLAYERS (name, tournId) VALUES(%s, %s)", (name, self.tournId))
         self.conn.commit()
-
-    def getPlayer(self, name):
-        self.cur.execute("SELECT * FROM players WHERE name = %s", (name,))
-        return self.cur.fetchone()
 
     def playerStandings(self):
         """Returns a list of the players and their win records, sorted by wins.
