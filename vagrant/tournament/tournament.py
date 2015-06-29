@@ -28,8 +28,8 @@ class Tournament(object):
     def _connect(self):
         """Connect to the PostgreSQL database.  Returns a database
         connection."""
-        self.conn = psycopg2.connect(
-            "dbname=tournament user=postgres password=test")
+        connstr = "dbname=tournament user=postgres password=test"
+        self.conn = psycopg2.connect(connstr)
         self.cur = self.conn.cursor()
 
     def _getTournament(self, tname):
@@ -100,10 +100,9 @@ class Tournament(object):
     def countPlayersThisTourn(self):
         """Returns the number of players currently enrolled in this
         tournament."""
-        self.cur.execute(
-            "SELECT count(*) FROM players where tournId = %s;",
-            (self.tournId,
-             ))
+        query = "SELECT count(*) FROM players where tournId = %s;"
+        param = (self.tournId,)
+        self.cur.execute(query, param)
         r = self.cur.fetchone()
         return r[0]
 
@@ -188,7 +187,6 @@ class Tournament(object):
         pairings = []
 
         for i in range(0, len(standings) - 1, 2):
-
             k = 1
             while True:
                 p1 = standings[i]
