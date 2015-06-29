@@ -22,11 +22,9 @@ class TestTournament(unittest.TestCase):
         self.t.deleteMatches()
         print "Old matches can be deleted."
 
-
     def testDelete(self):
-
+        self.t.deletePlayers()
         print "Player records can be deleted."
-
 
     def testCount(self):
         c = self.t.countPlayers()
@@ -189,6 +187,22 @@ class TestTournament(unittest.TestCase):
         pairings = self.t.swissPairings()
         self.assertFalse((id6, 'Player 6', id10, 'Player 10') in pairings, "Two players should not play against each onther more than once.")
         print "Rematches are prevented."
+
+
+class TestTournamentMultipleTournaments(TestTournament):
+    """
+    Repeat all tests with additional tournaments int he database.
+    """
+
+    def setUp(self):
+        self.t = Tournament()
+        self.t2 = Tournament()
+        self.t3 = Tournament()
+        self.t.deleteMatches()
+        self.t.deletePlayers()
+
+    def testMultiTournamets(self):
+        self.assertNotEqual(self.t.tournId, self.t2.tournId, "Tournament IDs should be different for different tournaments.")
 
 if __name__ == '__main__':
     unittest.main()
