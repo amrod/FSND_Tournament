@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# 
+#
 # tournament.py -- implementation of a Swiss-system tournament
 #
 
@@ -7,10 +7,12 @@ import psycopg2
 
 
 class Tournament(object):
+
     def __init__(self, tournament=None):
-        """The constructor opens a connection to the database and starts a tournament. The parameter tournament accepts
-         a tournament name. If a tournament by that name exists it will be used for this instance, if not, a new tournament
-         is created with that name.
+        """The constructor opens a connection to the database and starts a
+        tournament. The parameter tournament accepts a tournament name. If a
+        tournament by that name exists it will be used for this instance, if
+        not, a new tournament is created with that name.
         """
         self.conn = None
         self.cur = None
@@ -24,8 +26,10 @@ class Tournament(object):
         self.cur.close()
 
     def _connect(self):
-        """Connect to the PostgreSQL database.  Returns a database connection."""
-        self.conn = psycopg2.connect("dbname=tournament user=postgres password=test")
+        """Connect to the PostgreSQL database.  Returns a database
+        connection."""
+        self.conn = psycopg2.connect(
+            "dbname=tournament user=postgres password=test")
         self.cur = self.conn.cursor()
 
     def _getTournament(self, tname):
@@ -35,13 +39,15 @@ class Tournament(object):
             Id of the tournament created or retrieved.
         """
         tid = None
-
+        param = (tname,)
         if tname:
-            self.cur.execute("SELECT id FROM tournaments where name like %s", (tname,))
+            query = "SELECT id FROM tournaments where name like %s"
+            self.cur.execute(query, param)
             tid = self.cur.fetchone()
 
         if not tid:
-            self.cur.execute("INSERT INTO tournaments (name) VALUES(%s) RETURNING id", (tname,))
+            query = "INSERT INTO tournaments (name) VALUES(%s) RETURNING id"
+            self.cur.execute(query, param)
             tid = self.cur.fetchone()
             self.conn.commit()
 
@@ -61,7 +67,8 @@ class Tournament(object):
         return False
 
     def startNewTournament(self, name=None):
-        """Create a new tournament and assign its reference number to the this instance's tournament identifier tournId.
+        """Create a new tournament and assign its reference number to the this
+        instance's tournament identifier tournId.
 
         Returns:
             The ID of the tournament created.
@@ -74,12 +81,10 @@ class Tournament(object):
         self.cur.execute("DELETE FROM tournaments;")
         self.conn.commit()
 
-
     def deleteMatches(self):
         """Remove all the match records from the database."""
         self.cur.execute("DELETE FROM matches;")
         self.conn.commit()
-
 
     def deletePlayers(self):
         """Remove all the player records from the database."""
@@ -93,29 +98,36 @@ class Tournament(object):
         return r[0]
 
     def countPlayersThisTourn(self):
-        """Returns the number of players currently enrolled in this tournament."""
-        self.cur.execute("SELECT count(*) FROM players where tournId = %s;", (self.tournId,))
+        """Returns the number of players currently enrolled in this
+        tournament."""
+        self.cur.execute(
+            "SELECT count(*) FROM players where tournId = %s;",
+            (self.tournId,
+             ))
         r = self.cur.fetchone()
         return r[0]
-
 
     def registerPlayer(self, name):
         """Adds a player to the tournament database.
 
-        The database assigns a unique serial id number for the player.  (This
-        should be handled by your SQL database schema, not in your Python code.)
+        The database assigns a unique serial id number for the player. (This
+        should be handled by your SQL database schema, not in your Python
+        code.)
 
         Args:
           name: the player's full name (need not be unique).
         """
-        self.cur.execute("INSERT INTO PLAYERS (name, tournId) VALUES(%s, %s)", (name, self.tournId))
+        query = "INSERT INTO PLAYERS (name, tournId) VALUES(%s, %s)"
+        param = (name, self.tournId)
+        self.cur.execute(query, param)
         self.conn.commit()
 
     def playerStandings(self):
-        """Returns a list of the players and their win records, sorted by wins.
+        """Returns a list of the players and their win records, sorted by
+        wins.
 
-        The first entry in the list should be the player in first place, or a player
-        tied for first place if there is currently a tie.
+        The first entry in the list should be the player in first place, or a
+        player tied for first place if there is currently a tie.
 
         Returns:
           A list of tuples, each of which contains (id, name, wins, matches):
@@ -124,9 +136,12 @@ class Tournament(object):
             wins: the number of matches the player has won
             matches: the number of matches the player has played
         """
-        self.cur.execute("SELECT id, name, wins, matches FROM player_standings WHERE tournId = %s", (self.tournId,))
-        return self.cur.fetchall()
+        query = """SELECT id, name, wins, matches FROM player_standings WHERE
+        tournId = %s"""
+        param = (self.tournId,)
+        self.cur.execute(query, param)
 
+        return self.cur.fetchall()
 
     def reportMatch(self, winner, loser):
         """Records the outcome of a single match between two players.
@@ -135,7 +150,10 @@ class Tournament(object):
           winner:  the id number of the player who won
           loser:  the id number of the player who lost
         """
-        self.cur.execute("INSERT INTO MATCHES (tournId, winner, loser) VALUES(%s, %s, %s)", (self.tournId, winner, loser))
+        query = """INSERT INTO MATCHES (tournId, winner, loser) VALUES(%s, %s,
+        %s)"""
+        param = (self.tournId, winner, loser)
+        self.cur.execute(query, param)
         self.conn.commit()
 
     def getMatches(self):
@@ -144,16 +162,18 @@ class Tournament(object):
         Returns:
             A list of tuples, each of which contains (id, winner, loser)
         """
-        self.cur.execute("SELECT winner, loser FROM matches WHERE tournId = %s", (self.tournId,))
+        query = "SELECT winner, loser FROM matches WHERE tournId = %s"
+        param = (self.tournId,)
+        self.cur.execute(query, param)
         return self.cur.fetchall()
 
     def swissPairings(self):
         """Returns a list of pairs of players for the next round of a match.
 
-        Assuming that there are an even number of players registered, each player
-        appears exactly once in the pairings.  Each player is paired with another
-        player with an equal or nearly-equal win record, that is, a player adjacent
-        to him or her in the standings.
+        Assuming that there are an even number of players registered, each
+        player appears exactly once in the pairings.  Each player is paired
+        with another player with an equal or nearly-equal win record, that is,
+        a player adjacent to him or her in the standings.
 
         Returns:
           A list of tuples, each of which contains (id1, name1, id2, name2)
@@ -187,4 +207,3 @@ class Tournament(object):
             pairings.append((p1[0], p1[1], p2[0], p2[1]))
 
         return pairings
-
